@@ -151,17 +151,51 @@ func writeToxlsx(data areaData) error {
 		city := []rune(a.City)
 		province := []rune(a.Province)
 		switch {
+		case slices.Contains([]string{
+			"凉山彝族自治州",
+			"大理白族自治州",
+			"文山壮族苗族自治州",
+			"楚雄彝族自治州",
+			"海北藏族自治州",
+			"海西蒙古族藏族自治州",
+			"湘西土家族苗族自治州",
+			"玉树藏族自治州",
+			"红河哈尼族彝族自治州",
+			"阿坝藏族羌族自治州",
+			"黄南藏族自治州",
+		}, a.City):
+			citySet[string(city[0:2])] = struct{}{}
+		case slices.Contains([]string{
+			"克孜勒苏柯尔克孜自治州",
+			"巴音郭楞蒙古自治州",
+		}, a.City):
+			citySet[string(city[0:4])] = struct{}{}
+		case slices.Contains([]string{
+			"长白山保护开发区",
+		}, a.City):
+			citySet[string(city[0:3])] = struct{}{}
+		case a.City == "新疆生产建设兵团":
 		case a.City == "杨凌示范区":
 			citySet["杨凌"] = struct{}{}
 		case a.City == "临夏回族自治州":
 			citySet["临夏"] = struct{}{}
+		case a.City == "省直辖县级行政单位" && (a.County == "万宁市" || a.County == "东方市" || a.County == "潜江市" || a.County == "澄迈县"):
+			c := []rune(a.County)
+			citySet[string(c[0:len(c)-1])] = struct{}{}
+		case a.City == "省直辖县级行政单位" && (a.County == "神农架林区"):
+			c := []rune(a.County)
+			citySet[string(c[0:3])] = struct{}{}
+		case a.City == "省直辖县级行政单位" && (a.County == "白沙黎族自治县" || a.County == "乐东黎族自治县"):
+			c := []rune(a.County)
+			citySet[string(c[0:2])] = struct{}{}
 		case a.City == "省直辖县级行政单位":
 			citySet[a.County] = struct{}{}
+		case string(city[len(city)-2:]) == "地区":
+			citySet[string(city[0:len(city)-2])] = struct{}{}
 		case city[len(city)-1] == []rune("区")[0] && province[len(province)-1] == []rune("市")[0]:
-			a.City = a.Province
-			fallthrough
-		case city[len(city)-1] == []rune("市")[0]:
-			citySet[strings.Replace(a.City, "市", "", 1)] = struct{}{}
+			citySet[string(province[0:len(province)-1])] = struct{}{}
+		case (string(city[len(city)-1:]) == "市" || string(city[len(city)-1:]) == "县") && len(city) > 2:
+			citySet[string(city[0:len(city)-1])] = struct{}{}
 		default:
 			citySet[a.City] = struct{}{}
 		}
